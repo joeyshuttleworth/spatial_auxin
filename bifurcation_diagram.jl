@@ -50,43 +50,30 @@ param_dict = asp_model.get_default_parameters(omit_unused=true)
 param_labels = sort(collect(keys(param_dict)))
 println(param_labels)
 
-xlabel = "k__arf__all"
+xlabel = "_ARF_1_"
 
 state_labels = asp_model.get_state_variable_names(include_promoter_vars=false)
 
 println("states are $(state_labels)")
 # Create dictionary of parameters to change
 new_params = Dict()
-new_params["k__D__ARF_1__ARF_1"] = 5e0
-new_params["d__D__ARF_1__ARF_1"] = 1e0
 
-new_params["k__D__X__X"] = 1e-2
-new_params["d__D__X__X"] = 1e-1
-
-new_params["k__D__ATHB8__ATHB8"] = 1e-2
-new_params["d__D__ATHB8__ATHB8"] = 1e-1
-
-new_params["k__G2__ARF_1__ARF_1"] = 0.05
-
-new_params["k__G2__R__X"] = 0.0
+new_params["k__G2__R__X"] = 1.0e-2
 new_params["k__G2__R__ATHB8"]= 0.0
 
-new_params["k__G2__ARF_1__ARF_1__R__X"] = 5.0e-2
-new_params["k__G2__ARF_1__ARF_1__R__ATHB8"]= 1.0e-2
+new_params["k__G2__ARF_1__R__X"] = 0
+new_params["k__G2__ARF_1__R__ATHB8"]= 1e-2
 
-new_params["k__G2__ATHB8__ATHB8__R__ATHB8"] = 1.0e-3
-new_params["k__G2__X__X__R__ATHB8"] = 5.0e-3
+new_params["k__G2__ATHB8__R__ATHB8"] = 5.0e-2
+new_params["k__G2__X__R__ATHB8"] = 0
 
-new_params["k__G2__ATHB8__ATHB8__R__X"] = 5.0e-2
-new_params["k__G2__X__X__R__X"] = 5.0e-2
+new_params["k__G2__ATHB8__R__X"] = 0
+new_params["k__G2__X__R__X"] = 5.0e-2
 
 new_params["d__R"] = 1e-3
 
-new_params["k__arf__all"] = 0.01
-new_params["d__arf__all"] = 0.1
-
-new_params["k__ATHB8"]  = 1.0e-3
-new_params["k__X"]  = 1.0e-3
+new_params["k__ATHB8"]  = 1.0e-1
+new_params["k__X"]  = 1.0e-1
 
 new_params["d__ATHB8"] = 0.1
 new_params["d__X"] = 0.1
@@ -141,6 +128,7 @@ for (k, v) in param_dict
     max_p_dict[k] = 1.0
 end
 
+max_p_dict["_ARF_1_"] = 1000.0
 max_p_dict["k__arf__all"] = 1.0
 max_p_dict["d__arf__all"] = 1.0
 
@@ -193,48 +181,6 @@ function athb8_total_func(x)
 end
 
 const default_ic_dict = asp_model.get_default_initial_conditions()
-function arf_total_func(x)
-    include_indices = []
-    for (i, key) in enumerate(state_labels)
-        if occursin("ARF", key) && !occursin("R__", key) && !occursin("G__", key)
-            for j in 1:length(collect(eachmatch(Regex("ARF"), key)))
-                push!(include_indices, i)
-            end
-        end
-    end
-    return sum(x[include_indices])
-end
-
-function iaa_rna_total_func(x)
-    include_indices = []
-    for (i, key) in enumerate(state_labels)
-        if startswith(key, "R__iaa")
-            push!(include_indices, i)
-        end
-    end
-    return sum(x[include_indices])
-end
-
-
-function arf_rna_func(x, arf_index=nothing)
-    arfs = sort([x.name for x in asp_model.arf_variables])
-    # arfs = asp_model.arf_symbols
-    ret_vec = [0.0 for a in arfs]
-
-    if arf_index === nothing
-      for (i, arf) in enumerate(arfs)
-          state_index = findfirst(==("R__$(arf)"), state_labels)
-          ret_vec[i] = x[state_index]
-      end
-        return ret_vec
-    end
-
-    arf = arfs[arf_index]
-    rna_symbol = "R__$(arf)"
-    state_index = findfirst(==(rna_symbol),
-                            state_labels)
-    return x[state_index]
-end
 
 plot_var = parsed_args["plot_var"]
 if plot_var == "iaa_rna"
@@ -279,17 +225,15 @@ z0 = sol[:, size(sol, 2)]
 println(Dict(zip(state_labels, z0)))
 println(Dict(zip(state_labels, z0)))
 
-par_pp[end] = 1.0
+dsmax = p_max * 1e-2
+dsmin = p_init * 1e-9
+ds = (dsmax + dsmin) / 2.0
 
 # bifurcation problem
 prob1 = BifurcationProblem(f_deriv, z0, par_pp,
                            (@optic _[param_index]),
                            record_from_solution=recordFromSolution,
                            )
-
-dsmax = p_max / 10
-dsmin = p_init * 1e-9
-ds = (dsmax + dsmin) / 2.0
 
 opts_br = ContinuationPar(p_max = p_max, p_min=0.01,
                           dsmax=dsmax, dsmin=dsmin, ds = ds,
@@ -302,7 +246,27 @@ diagram1 = bifurcationdiagram(prob1, PALC(),
                               bothside=true
                               )
 
+par_pp[param_index] = 0.01
+# bifurcation problem
+prob1 = BifurcationProblem(f_deriv, z0, par_pp,
+                           (@optic _[param_index]),
+                           record_from_solution=recordFromSolution,
+                           )
+
+opts_br = ContinuationPar(p_max = p_max, p_min=1e-8,
+                          dsmax=dsmax, dsmin=dsmin, ds = ds,
+                          nev=10, max_steps=100000,
+                          detect_bifurcation=3)
+
+diagram2 = bifurcationdiagram(prob1, PALC(),
+                              3,
+                              opts_br,
+                              bothside=true
+                              )
+
+
 scene = plot(diagram1; code=(), legend=true,
              vars=(:param, plot_var_s),
              xlabel=xlabel)
+plot!(diagram2)
 savefig(scene, "$(output_dir)/bifurcation_diagram.pdf")
