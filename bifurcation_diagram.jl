@@ -61,8 +61,8 @@ new_params = Dict()
 new_params["k__G2__R__X"] = 1.0e-2
 new_params["k__G2__R__ATHB8"]= 0.0
 
-new_params["k__G2__ARF_1__R__X"] = 0
-new_params["k__G2__ARF_1__R__ATHB8"]= 1e-2
+new_params["k__G2__ARF_1__R__X"] = 1e-2
+new_params["k__G2__ARF_1__R__ATHB8"]= 1e-1
 
 new_params["k__G2__ATHB8__R__ATHB8"] = 5.0e-2
 new_params["k__G2__X__R__ATHB8"] = 0

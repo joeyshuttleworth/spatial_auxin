@@ -36,16 +36,16 @@ def main():
     print(res)
 
 
-def generate_model():
-    model = ATHB8Model(nARFs=0, nIAAs=0,
-                       include_arf_transcription=False)
+def generate_model(nARFs=0, nIAAs=0, **kwargs):
+    model = ATHB8Model(nARFs=nARFs, nIAAs=nIAAs,
+                       **kwargs)
 
     return model
 
 
 class ATHB8Model(ReducedAuxinSignallingPathway):
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, nARFs=0, nIAAs=0, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.add_state("ATHB8", category="vasular")
@@ -71,11 +71,6 @@ class ATHB8Model(ReducedAuxinSignallingPathway):
         self.add_model_parameter("d__X", 1.0, "decay rate for X",
                                  "decay"
                                  )
-
-        self.add_model_parameter("_ARF_1_", 1.0, "ARF promoter binding rate", category="promoter")
-        self.add_model_parameter("d_ARF_1_", 1.0, "ARF promoter unbinding rate",
-                       category="promoter")
-
         self.add_reaction([self.empty_set_node.name], ["ATHB8"],
                           [], ["d__ATHB8"])
 
@@ -94,34 +89,76 @@ class ATHB8Model(ReducedAuxinSignallingPathway):
 
         # Promoter binding reactions (using a separate promoter)
         self.add_state("G2", category="promoter")
-        self.add_state("G2__ARF_1", category="promoter")
 
-        self.add_reaction(["G2"], ["G2__ARF_1"], ["_ARF_1_"], ["d_ARF_1_"])
+        if nARFs == 0:
 
-        self.add_state("G2__ATHB8", category="promoter")
+            self.add_model_parameter("_ARF_1_", 1.0, "ARF promoter binding rate", category="promoter")
+            self.add_model_parameter("d_ARF_1_", 1.0, "ARF promoter unbinding rate",
+                                    category="promoter")
+
+            self.add_state("G2__ARF_1", category="promoter")
+            self.add_reaction(["G2"], ["G2__ARF_1"], ["_ARF_1_"], ["d_ARF_1_"])
+
+        else:
+            for state in self.dimer_variables:
+                dimer_name = state.name
+                promoter_state_name = "G2__" + dimer_name[3:]
+
+                if "iaa_1__iaa_1" in promoter_state_name:
+                    continue
+
+                state = self.add_state(promoter_state_name,
+                                       category="promoter",
+                                       components=[dimer_name])
+
+                bind_var = self.add_model_parameter(
+                    f"k__{promoter_state_name}",
+                    1.0,
+                    "promoter binding rate for {dimer_name} and G2",
+                )
+                unbind_var = self.add_model_parameter(
+                    f"d__{promoter_state_name}",
+                    1.0,
+                    "promoter unbinding rate for {dimer_name} and G2",
+                )
+                self.add_reaction(["G2"], [promoter_state_name],
+                                  [], [unbind_var.name]
+                                  )
+
+                self.add_reaction(["G2"], [promoter_state_name],
+                                  [bind_var.name], [],
+                                  enzymes=[dimer_name]
+                                  )
+
+                target_genes = ["X", "ATHB8"]
+                for target_gene in target_genes:
+                    transcription_rate_var_name = f"k__{promoter_state_name}__R__{target_gene}"
+                    self.add_model_parameter(transcription_rate_var_name,
+                                             1.0,
+                                             "transcription rate")
+                    self.add_reaction([], [f"R__{target_gene}"],
+                                      [transcription_rate_var_name],
+                                      [],
+                                      enzymes=[promoter_state_name]
+                                      )
+
+        # self.add_state("G2__ATHB8", category="promoter")
         # self.add_state("G2__ATHB8__X", category="promoter")
         self.add_state("G2__X", category="promoter")
 
-        self.add_model_parameter("k__G2__ATHB8",
-                                 category="promoter binding")
-        self.add_model_parameter("d__G2__ATHB8",
-                                 category="promoter binding")
-        self.add_reaction(["G2"], ["G2__ATHB8"],
-                          ["k__G2__ATHB8"], [],
-                          enzymes=["ATHB8"])
+        # self.add_model_parameter("k__G2__ATHB8",
+        #                          category="promoter binding")
+        # self.add_model_parameter("d__G2__ATHB8",
+        #                          category="promoter binding")
+        # # self.add_reaction(["G2"], ["G2__ATHB8"],
+        #                   ["k__G2__ATHB8"], [],
+        #                   enzymes=["ATHB8"])
 
-        self.add_reaction(["G2"], ["G2__ATHB8"], [],
-                          ["d__G2__ATHB8"])
+        # self.add_reaction(["G2"], ["G2__ATHB8"], [],
+        #                   ["d__G2__ATHB8"])
 
-        # self.add_model_parameter("k__G2__ATHB8__X", category="promoter binding")
-        # self.add_model_parameter("d__G2__ATHB8__X", category="promoter binding")
-        # self.add_reaction(["G2"], ["G2__ATHB8__X"], ["k__G2__ATHB8__X"], [],
-        #                   enzymes=["D__ATHB8__X"])
-        # self.add_reaction(["G2"], ["G2__ATHB8__X"], [], ["d__G2__ATHB8__X"],
-        #                   )
-
-        self.add_model_parameter("k__G2__X", category="promoter binding")
-        self.add_model_parameter("d__G2__X", category="promoter binding")
+        self.add_model_parameter("k__G2__X", 1.0, category="promoter binding")
+        self.add_model_parameter("d__G2__X", 1.0, category="promoter binding")
         self.add_reaction(["G2"], ["G2__X"], ["k__G2__X"], [],
                           enzymes=["X"])
         self.add_reaction(["G2"], ["G2__X"], [], ["d__G2__X"])
@@ -131,7 +168,7 @@ class ATHB8Model(ReducedAuxinSignallingPathway):
             self.add_reaction([mrna], [self.empty_set_node.name], ["d__R"])
 
             promoter_states =  ["G2",
-                                "G2__ATHB8",
+                                # "G2__ATHB8",
                                 "G2__X"]
 
             for promoter_state in promoter_states:
@@ -147,53 +184,29 @@ class ATHB8Model(ReducedAuxinSignallingPathway):
         print(self.generate_pretty_print_state_dict())
         print(self.generate_pretty_print_parameter_dict())
 
-        self.add_model_parameter("k__G2__ARF_1",
-                                 1.0, "Binding rate for G2 promoter with ARF")
+        if nARFs == 0:
+            self.add_model_parameter("k__G2__ARF_1",
+                                     1.0, "Binding rate for G2 promoter with ARF")
 
-        self.add_model_parameter("d__G2__ARF_1",
-                                 1.0, "Unbindnig rate for G2 promoter with ARF")
+            self.add_model_parameter("d__G2__ARF_1",
+                                     1.0, "Unbindnig rate for G2 promoter with ARF")
 
-        self.add_model_parameter("k__G2__ARF_1__R__ATHB8", 1.0, "",
-                                 "transcription")
-        self.add_model_parameter("k__G2__ARF_1__R__X", 1.0, "",
-                                 "transcription")
+            self.add_model_parameter("k__G2__ARF_1__R__ATHB8", 1.0, "",
+                                     "transcription")
+            self.add_model_parameter("k__G2__ARF_1__R__X", 1.0, "",
+                                     "transcription")
 
-        self.add_reaction([self.empty_set_node.name], ["R__ATHB8"],
-                          ["k__G2__ARF_1__R__ATHB8"],
-                          enzymes=["G2__ARF_1"])
-        self.add_reaction([self.empty_set_node.name], ["R__X"],
-                          ["k__G2__ARF_1__R__X"],
-                          enzymes=["G2__ARF_1"])
+            self.add_reaction([self.empty_set_node.name], ["R__ATHB8"],
+                              ["k__G2__ARF_1__R__ATHB8"],
+                              enzymes=["G2__ARF_1"])
+            self.add_reaction([self.empty_set_node.name], ["R__X"],
+                              ["k__G2__ARF_1__R__X"],
+                              enzymes=["G2__ARF_1"])
 
-        # self.add_state("G2__ARF_1__iaa_1", category="promoter")
-        # self.add_model_parameter("k__G2__ARF_1__iaa_1",
-        #                          0.1, "Binding rate for G2 promoter with ARF-Aux/IAA dimer")
+        states_to_remove = []
 
-        # self.add_model_parameter("d__G2__ARF_1__iaa_1",
-        #                          0.1, "Unbindnig rate for G2 promoter with ARF-Aux/IAA dimer")
-
-        # self.add_reaction(["G2"], ["G2__ARF_1__iaa_1"],
-        #                   ["k__G2__ARF_1__iaa_1"],
-        #                   [], enzymes=["D__ARF_1__iaa_1"])
-
-        # self.add_reaction(["G2__ARF_1__iaa_1"],
-        #                   ["G2"],
-        #                   ["d__G2__ARF_1__iaa_1"],
-        #                   [], [])
-
-        # self.add_model_parameter("k__G2__ARF_1__iaa_1__R__ATHB8", 1.0, "",
-        #                          "transcription")
-        # self.add_model_parameter("k__G2__ARF_1__iaa_1__R__X", 1.0, "",
-        #                          "transcription")
-
-        # self.add_reaction([self.empty_set_node.name], ["R__ATHB8"],
-        #                   ["k__G2__ARF_1__iaa_1__R__ATHB8"],
-        #                   enzymes=["G2__ARF_1__iaa_1"])
-        # self.add_reaction([self.empty_set_node.name], ["R__X"],
-        #                   ["k__G2__ARF_1__iaa_1__R__X"],
-        #                   enzymes=["G2__ARF_1__iaa_1"])
-
-        states_to_remove = ["G"]
+        if nARFs == 0 and nIAAs == 0:
+            states_to_remove = ["G"]
         for state in states_to_remove:
             self.remove_state_variable_by_name(state)
 

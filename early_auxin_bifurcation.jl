@@ -76,8 +76,8 @@ new_params["k__G2__ARF_1__ARF_1__R__ATHB8"] = 1.0e-1
 new_params["k__G2__ARF_1__iaa_1__R__ATHB8"] = 0.0
 new_params["k__G2__X__R__X"] = 0.0
 
-new_params["k__RNA__IAA"] = 3.0
-new_params["k__RNA__ARF"] = 0.2
+new_params["k__RNA__IAA"] = 2.0
+new_params["k__RNA__ARF"] = 0.25
 new_params["d__R"] = 1e-3
 
 new_params["d__iaa_1__x"] = 10.0
@@ -85,30 +85,30 @@ new_params["d__iaa_1__x"] = 10.0
 new_params["k__ATHB8"]  = 0.01
 new_params["k__X"]  = 0
 
-new_params["d__ATHB8"] = 1.0
+new_params["d__ATHB8"] = 0.01
 new_params["d__X"] = 0.1
 
-new_params["k__G2__ARF_1__ARF_1"] = 0.1
+new_params["k__G2__ARF_1__ARF_1"] = 10.0
 
-new_params["k__D__ARF_1__ARF_1"] = 1e0
+new_params["k__D__ARF_1__ARF_1"] = 1e1
 new_params["d__D__ARF_1__ARF_1"] = 1e0
 
-new_params["k__D__ARF_1__iaa_1"] = 1e1
+new_params["k__D__ARF_1__iaa_1"] = 5e1
 new_params["d__D__ARF_1__iaa_1"] = 1e0
 
-new_params["k__D__iaa_1__iaa_1"] = 0.5
+new_params["k__D__iaa_1__iaa_1"] = 1e-1
 new_params["d__D__iaa_1__iaa_1"] = 1e0
 
-new_params["d__arf__all"] = 0.15
+new_params["d__arf__all"] = 5.0
 new_params["d__iaa__all"] = 0.1
 
-new_params["k__G__ARF_1__ARF_1__R__ARF_1"] = 2.0e-2
+new_params["k__G__ARF_1__ARF_1__R__ARF_1"] = 5.0e-2
 new_params["k__G__ARF_1__iaa_1__R__ARF_1"] = 0.0
-new_params["k__G__R__ARF_1"] = 0.00075e-2
+new_params["k__G__R__ARF_1"] = 1e-3
 
-new_params["k__G__ARF_1__ARF_1__R__iaa_1"] = 1.0e-2
+new_params["k__G__ARF_1__ARF_1__R__iaa_1"] = 5.0e-2
 new_params["k__G__ARF_1__iaa_1__R__iaa_1"] = 0.0
-new_params["k__G__R__iaa_1"] = 0.1e-2
+new_params["k__G__R__iaa_1"] = 1e-2
 
 
 
