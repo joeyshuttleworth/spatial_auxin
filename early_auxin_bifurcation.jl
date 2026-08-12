@@ -72,15 +72,14 @@ new_params["k__G2__ARF_1__ARF_1__R__X"] = 0.0
 new_params["k__G2__ARF_1__iaa_1__R__X"] = 0.0
 new_params["k__G2__X__R__X"] = 0.0
 
-new_params["k__G2__ARF_1__ARF_1__R__ATHB8"] = 1.0e-1
+new_params["k__G2__ARF_1__ARF_1__R__ATHB8"] = 1.0e-2
 new_params["k__G2__ARF_1__iaa_1__R__ATHB8"] = 0.0
 new_params["k__G2__X__R__X"] = 0.0
 
-new_params["k__RNA__IAA"] = 2.0
-new_params["k__RNA__ARF"] = 0.25
-new_params["d__R"] = 1e-3
 
-new_params["d__iaa_1__x"] = 10.0
+new_params["k__RNA__IAA"] = 0.02
+new_params["k__RNA__ARF"] = 0.01
+new_params["d__R"] = 1e-3
 
 new_params["k__ATHB8"]  = 0.01
 new_params["k__X"]  = 0
@@ -88,28 +87,29 @@ new_params["k__X"]  = 0
 new_params["d__ATHB8"] = 0.01
 new_params["d__X"] = 0.1
 
-new_params["k__G2__ARF_1__ARF_1"] = 10.0
+new_params["k__G2__ARF_1__ARF_1"] = 1.0e-1
+new_params["k__G2__ARF_1__iaa_1"] = 5.0e-2
 
-new_params["k__D__ARF_1__ARF_1"] = 1e1
+new_params["k__D__ARF_1__ARF_1"] = 5e0
 new_params["d__D__ARF_1__ARF_1"] = 1e0
 
-new_params["k__D__ARF_1__iaa_1"] = 5e1
-new_params["d__D__ARF_1__iaa_1"] = 1e0
+new_params["k__D__ARF_1__iaa_1"] = 1e2
+new_params["d__D__ARF_1__iaa_1"] = 5e-1
 
-new_params["k__D__iaa_1__iaa_1"] = 1e-1
-new_params["d__D__iaa_1__iaa_1"] = 1e0
+new_params["k__D__iaa_1__iaa_1"] = 1e0
+new_params["d__D__iaa_1__iaa_1"] = 5e0
 
-new_params["d__arf__all"] = 5.0
-new_params["d__iaa__all"] = 0.1
+new_params["d__arf__all"] = 0.1
+new_params["d__iaa__all"] = 0.1001
+new_params["d__iaa_1__x"] = 15.0
 
 new_params["k__G__ARF_1__ARF_1__R__ARF_1"] = 5.0e-2
 new_params["k__G__ARF_1__iaa_1__R__ARF_1"] = 0.0
 new_params["k__G__R__ARF_1"] = 1e-3
 
-new_params["k__G__ARF_1__ARF_1__R__iaa_1"] = 5.0e-2
-new_params["k__G__ARF_1__iaa_1__R__iaa_1"] = 0.0
-new_params["k__G__R__iaa_1"] = 1e-2
-
+new_params["k__G__ARF_1__ARF_1__R__iaa_1"] = 1.0e-1
+new_params["k__G__ARF_1__iaa_1__R__iaa_1"] = 5.0e-3
+new_params["k__G__R__iaa_1"] = 5e-2
 
 
 # Insert new parameters, ensuring that all are present in the model
@@ -167,7 +167,7 @@ max_p_dict["_ARF_1_"] = 1000.0
 max_p_dict["k__arf__all"] = 1.0
 max_p_dict["d__arf__all"] = 1.0
 
-max_p_dict["d__iaa__all"] = 100.0
+max_p_dict["d__iaa__all"] = 10.0
 max_p_dict["k__D__ARF_1__ARF_1"] = 1e1
 max_p_dict["k__D__ARF_1__iaa_1"] = 1e1
 max_p_dict["k__D__iaa_1__iaa_1"] = 1e1
@@ -181,7 +181,7 @@ push!(par_pp, 0.0)
 println(par_pp)
 
 # Solve system with high and low auxin
-tspan = (0.0, 1e4)
+tspan = (0.0, 1e5)
 z0 = Float64.(collect(values(sort(asp_model.get_default_initial_conditions()))))
 
 println(z0)
@@ -196,7 +196,7 @@ z0 = sol[:, size(sol, 2)]
 
 legend_labels = reshape(state_labels, 1, length(state_labels))
 s = plot(sol, label=legend_labels, legend=true)
-savefig(s, "$(output_dir)/ode_sol1.pdf")
+savefig(s, "$(output_dir)/ode_sol_low_auxin.pdf")
 
 print("SS with Auxin conc. = 10.0, ")
 println(Dict(zip(state_labels, z0)))
@@ -277,9 +277,6 @@ recordFromSolution(x, p; k...) = (
 z0 = copy(Float64.(collect(values(sort(asp_model.get_default_initial_conditions())))))
 
 p_max = max_p_dict[xlabel]
-p_init = p_max * 0.9
-# par_pp[param_index] = p_init
-tspan = (0.0, 1e4)
 
 prob = ODEProblem(f_deriv, z0, tspan, par_pp)
 sol = DifferentialEquations.solve(prob)
@@ -296,15 +293,17 @@ sol = DifferentialEquations.solve(prob)
 
 legend_labels = reshape(state_labels, 1, length(state_labels))
 s = plot(sol, label=legend_labels, legend=true)
-savefig(s, "$(output_dir)/ode_sol.pdf")
+savefig(s, "$(output_dir)/ode_sol_high_auxin.pdf")
 
 z0 = sol[:, size(sol, 2)]
 println(Dict(zip(state_labels, z0)))
 println(Dict(zip(state_labels, z0)))
 
 dsmax = p_max * 1e-2
-dsmin = p_init * 1e-9
+dsmin = p_max * 1e-9
 ds = (dsmax + dsmin) / 2.0
+
+par_pp[end] = 0.0
 
 # bifurcation problem
 prob1 = BifurcationProblem(f_deriv, z0, par_pp,
@@ -312,7 +311,7 @@ prob1 = BifurcationProblem(f_deriv, z0, par_pp,
                            record_from_solution=recordFromSolution,
                            )
 
-opts_br = ContinuationPar(p_max = p_max, p_min=0.01,
+opts_br = ContinuationPar(p_max = p_max, p_min=0.1,
                           dsmax=dsmax, dsmin=dsmin, ds = ds,
                           nev=10, max_steps=100000,
                           detect_bifurcation=3)
@@ -323,14 +322,13 @@ diagram1 = bifurcationdiagram(prob1, PALC(),
                               bothside=true
                               )
 
-par_pp[param_index] = 0.01
 # bifurcation problem
 prob1 = BifurcationProblem(f_deriv, z0, par_pp,
                            (@optic _[param_index]),
                            record_from_solution=recordFromSolution,
                            )
 
-opts_br = ContinuationPar(p_max = p_max, p_min=1e-8,
+opts_br = ContinuationPar(p_max = p_max, p_min=0.1,
                           dsmax=dsmax, dsmin=dsmin, ds = ds,
                           nev=10, max_steps=100000,
                           detect_bifurcation=3)
@@ -340,6 +338,9 @@ diagram2 = bifurcationdiagram(prob1, PALC(),
                               opts_br,
                               bothside=true
                               )
+
+println(diagram1)
+println(diagram2)
 
 
 scene = plot(diagram1; code=(), legend=false,
