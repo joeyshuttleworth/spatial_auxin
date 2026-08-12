@@ -73,7 +73,7 @@ new_params["k__G2__ARF_1__iaa_1__R__X"] = 0.0
 new_params["k__G2__X__R__X"] = 0.0
 
 new_params["k__G2__ARF_1__ARF_1__R__ATHB8"] = 1.0e-2
-new_params["k__G2__ARF_1__iaa_1__R__ATHB8"] = 0.0
+new_params["k__G2__ARF_1__iaa_1__R__ATHB8"] = 1.0e-2
 new_params["k__G2__X__R__X"] = 0.0
 
 
@@ -87,8 +87,11 @@ new_params["k__X"]  = 0
 new_params["d__ATHB8"] = 0.01
 new_params["d__X"] = 0.1
 
-new_params["k__G2__ARF_1__ARF_1"] = 1.0e-1
-new_params["k__G2__ARF_1__iaa_1"] = 5.0e-2
+new_params["k__G2__ARF_1__ARF_1"] = 1.0e-2
+new_params["k__G2__ARF_1__iaa_1"] = 1.0e-2
+
+# new_params["k__G__ARF_1__ARF_1"] = 1.0e1
+# new_params["k__G__ARF_1__iaa_1"] = 5.0e-3
 
 new_params["k__D__ARF_1__ARF_1"] = 5e0
 new_params["d__D__ARF_1__ARF_1"] = 1e0
@@ -167,7 +170,7 @@ max_p_dict["_ARF_1_"] = 1000.0
 max_p_dict["k__arf__all"] = 1.0
 max_p_dict["d__arf__all"] = 1.0
 
-max_p_dict["d__iaa__all"] = 10.0
+max_p_dict["d__iaa__all"] = 25.0
 max_p_dict["k__D__ARF_1__ARF_1"] = 1e1
 max_p_dict["k__D__ARF_1__iaa_1"] = 1e1
 max_p_dict["k__D__iaa_1__iaa_1"] = 1e1
