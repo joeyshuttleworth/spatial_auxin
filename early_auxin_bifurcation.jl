@@ -6,6 +6,8 @@ using Measures
 using Plots
 using LaTeXStrings
 using ColorSchemes
+using Symbolics
+using Interpolations
 
 using PyCall
 
@@ -59,60 +61,63 @@ println("states are $(state_labels)")
 # Create dictionary of parameters to change
 new_params = Dict()
 
-new_params["k__G2__R__X"] = 0.0e-2
-new_params["k__G2__R__ATHB8"]= 0.0
+# new_params["k__G2__X__R__X"] = 0
 
+# new_params["k__G2__ARF_1__ARF_1__R__X"] = 0.0
+# new_params["k__G2__ARF_1__iaa_1__R__X"] = 0.0
+# new_params["k__G2__X__R__X"] = 0.0
+
+new_params["k__G2__ARF_1__ARF_1__R__ATHB8"] = 0.1
+new_params["k__G2__ARF_1__iaa_1__R__ATHB8"] = 0.0
 new_params["k__G2__R__ATHB8"] = 0.0
-new_params["k__G2__X__R__ATHB8"] = 0.0e-2
+# new_params["k__G2__ATHB8__R__ATHB8"] = 0.0
+# new_params["k__G2__X__R__X"] = 0.0
 
-new_params["k__G2__ATHB8__R__X"] = 0
-new_params["k__G2__X__R__X"] = 0
-
-new_params["k__G2__ARF_1__ARF_1__R__X"] = 0.0
-new_params["k__G2__ARF_1__iaa_1__R__X"] = 0.0
-new_params["k__G2__X__R__X"] = 0.0
-
-new_params["k__G2__ARF_1__ARF_1__R__ATHB8"] = 1.0e-2
-new_params["k__G2__ARF_1__iaa_1__R__ATHB8"] = 1.0e-2
-new_params["k__G2__X__R__X"] = 0.0
-
-
-new_params["k__RNA__IAA"] = 0.02
+new_params["k__ATHB8"] = 0.0001
+new_params["k__RNA__IAA"] = 0.025
 new_params["k__RNA__ARF"] = 0.01
 new_params["d__R"] = 1e-3
 
-new_params["k__ATHB8"]  = 0.01
+new_params["k__ATHB8"]  = 0.0001
 new_params["k__X"]  = 0
 
-new_params["d__ATHB8"] = 0.01
+new_params["d__ATHB8"] = 1.0e-3
 new_params["d__X"] = 0.1
 
-new_params["k__G2__ARF_1__ARF_1"] = 1.0e-2
-new_params["k__G2__ARF_1__iaa_1"] = 1.0e-2
 
-# new_params["k__G__ARF_1__ARF_1"] = 1.0e1
-# new_params["k__G__ARF_1__iaa_1"] = 5.0e-3
+new_params["k__G2__X"] = 0
+new_params["d__G2__X"] = 1.0
+
+new_params["k__G2__ARF_1__ARF_1"] = 1.0e-1
+new_params["k__G2__ARF_1__iaa_1"] = 1.0e0
+
+# new_params["k__G__ARF_1__ARF_1"] = 1.0e-1
+# new_params["k__G__ARF_1__iaa_1"] = 1.0e-1
 
 new_params["k__D__ARF_1__ARF_1"] = 5e0
 new_params["d__D__ARF_1__ARF_1"] = 1e0
 
-new_params["k__D__ARF_1__iaa_1"] = 1e2
+new_params["k__D__ARF_1__iaa_1"] = 1e1
 new_params["d__D__ARF_1__iaa_1"] = 5e-1
 
-new_params["k__D__iaa_1__iaa_1"] = 1e0
-new_params["d__D__iaa_1__iaa_1"] = 5e0
+new_params["k__D__iaa_1__iaa_1"] = 5e0
+new_params["d__D__iaa_1__iaa_1"] = 5e-1
 
 new_params["d__arf__all"] = 0.1
 new_params["d__iaa__all"] = 0.1001
-new_params["d__iaa_1__x"] = 15.0
+new_params["d__iaa_1__x"] = 1.0
 
-new_params["k__G__ARF_1__ARF_1__R__ARF_1"] = 5.0e-2
+new_params["k__G__ARF_1__ARF_1__R__ARF_1"] = 1.0e-1
 new_params["k__G__ARF_1__iaa_1__R__ARF_1"] = 0.0
 new_params["k__G__R__ARF_1"] = 1e-3
 
 new_params["k__G__ARF_1__ARF_1__R__iaa_1"] = 1.0e-1
 new_params["k__G__ARF_1__iaa_1__R__iaa_1"] = 5.0e-3
 new_params["k__G__R__iaa_1"] = 5e-2
+
+new_params["k__G2__ARF_1__ARF_1_2"] = 1.0
+new_params["k__G2__ARF_1__ARF_1"] = 0.001
+new_params["k__G2__ARF_1__ARF_1_2__R__X"] = 1000.0
 
 
 # Insert new parameters, ensuring that all are present in the model
@@ -170,7 +175,7 @@ max_p_dict["_ARF_1_"] = 1000.0
 max_p_dict["k__arf__all"] = 1.0
 max_p_dict["d__arf__all"] = 1.0
 
-max_p_dict["d__iaa__all"] = 25.0
+max_p_dict["d__iaa__all"] = 3.0
 max_p_dict["k__D__ARF_1__ARF_1"] = 1e1
 max_p_dict["k__D__ARF_1__iaa_1"] = 1e1
 max_p_dict["k__D__iaa_1__iaa_1"] = 1e1
@@ -288,6 +293,18 @@ z0 = sol[:, size(sol, 2)]
 print("Eval deriv func: ")
 println(f_deriv(copy(z0), copy(z0), copy(par_pp)))
 
+odes, freevars, contraints = asp_model.generate_ode_system()
+println(odes)
+
+# syms = sort([Symbol(s.name) for s in odes.free_symbols]) # [:a, :b]
+# vars = @variables $syms...
+
+# odes_sym = sympy_to_symbolics(odes, vars)
+# I = ideal(odes_sym)
+# G = groebner_basis(I)
+
+# println(G)
+
 println(Dict(zip(state_labels, z0)))
 
 par_pp[end] = 1.0
@@ -298,9 +315,9 @@ legend_labels = reshape(state_labels, 1, length(state_labels))
 s = plot(sol, label=legend_labels, legend=true)
 savefig(s, "$(output_dir)/ode_sol_high_auxin.pdf")
 
-z0 = sol[:, size(sol, 2)]
-println(Dict(zip(state_labels, z0)))
-println(Dict(zip(state_labels, z0)))
+z02 = sol[:, size(sol, 2)]
+println(Dict(zip(state_labels, z02)))
+println(Dict(zip(state_labels, z02)))
 
 dsmax = p_max * 1e-2
 dsmin = p_max * 1e-9
@@ -353,3 +370,64 @@ scene = plot(diagram1; code=(), legend=false,
 plot!(diagram2; vars=(:param, plot_var_s),
       xlabel=xlabel, legend=false)
 savefig(scene, "$(output_dir)/bifurcation_diagram.pdf")
+
+
+
+function aux_conc(x)
+    return exp(-x^2/5)*2.0 + 0.15
+end
+
+athb8_values = []
+arf5_values = []
+aux_vals = []
+
+prob = remake(prob, tspan=(0.0, 1e6))
+
+pos_vec = -5.0:0.1:5.0
+for pos in pos_vec
+    aux = aux_conc(pos)
+    push!(aux_vals, aux)
+
+    # u_athb8 = diagram1.γ.athb8_tot
+    # u_arf5 = diagram1.γ.arf_1_tot
+    # p = diagram1.γ.param
+
+    # # Find first point from which p is strictly increasing
+    # start = findfirst(i -> all(diff(p[i:end]) .> 0), 1:length(p)-1)
+
+    # p = p[start:end]
+    # u_athb8 = u_athb8[start:end]
+    # u_arf5 = u_arf5[start:end]
+
+    p_target = aux
+    # itp_arf5 = linear_interpolation(p, u_arf5)
+    # arf5_value = itp_arf5(p_target)
+
+    # itp_athb8 = linear_interpolation(p, u_athb8)
+    # athb8_value = itp_athb8(p_target)
+    # push!(athb8_values, athb8_value)
+
+    par_pp[param_index] = p_target
+    local sol
+    sol = solve(prob, p=par_pp)
+
+    athb8_value = athb8_total_func(sol[:, end])
+    arf5_value = arf_1_total_func(sol[:, end])
+
+    push!(arf5_values, arf5_value)
+    push!(athb8_values, athb8_value)
+end
+
+println(athb8_values)
+println(arf5_values)
+
+scene = plot()
+
+arf5_values .= arf5_values / maximum(arf5_values)
+athb8_values .= athb8_values / maximum(athb8_values)
+
+plot!(scene, pos_vec, aux_vals, label=L"$d_I$")
+plot!(scene, pos_vec, arf5_values, label=L"$\bar A$")
+plot!(scene, pos_vec, athb8_values, label=L"$\bar X$")
+
+savefig(scene, "$(output_dir)/position_plot.pdf")

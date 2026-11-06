@@ -107,33 +107,33 @@ class ATHB8Model(ReducedAuxinSignallingPathway):
         ## Promoter binding reactions (using a separate promoter)
         self.add_state("G2", category="promoter")
 
-        self.add_state("G2__D__ATHB8__ATHB8", category="promoter")
-        self.add_state("G2__D__ATHB8__X", category="promoter")
-        self.add_state("G2__D__X__X", category="promoter")
+        # self.add_state("G2__D__ATHB8__ATHB8", category="promoter")
+        # self.add_state("G2__D__ATHB8__X", category="promoter")
+        # self.add_state("G2__D__X__X", category="promoter")
 
-        self.add_model_parameter("k__G2__D__ATHB8__ATHB8",
-                                 category="promoter binding")
-        self.add_model_parameter("d__G2__D__ATHB8__ATHB8",
-                                 category="promoter binding")
-        self.add_reaction(["G2"], ["G2__D__ATHB8__ATHB8"],
-                          ["k__G2__D__ATHB8__ATHB8"], [],
-                          enzymes=["D__ATHB8__ATHB8"])
+        # self.add_model_parameter("k__G2__D__ATHB8__ATHB8",
+        #                          category="promoter binding")
+        # self.add_model_parameter("d__G2__D__ATHB8__ATHB8",
+        #                          category="promoter binding")
+        # self.add_reaction(["G2"], ["G2__D__ATHB8__ATHB8"],
+        #                   ["k__G2__D__ATHB8__ATHB8"], [],
+        #                   enzymes=["D__ATHB8__ATHB8"])
 
-        self.add_reaction(["G2"], ["G2__D__ATHB8__ATHB8"], [],
-                          ["d__G2__D__ATHB8__ATHB8"])
+        # self.add_reaction(["G2"], ["G2__D__ATHB8__ATHB8"], [],
+        #                   ["d__G2__D__ATHB8__ATHB8"])
 
-        self.add_model_parameter("k__G2__D__ATHB8__X", category="promoter binding")
-        self.add_model_parameter("d__G2__D__ATHB8__X", category="promoter binding")
-        self.add_reaction(["G2"], ["G2__D__ATHB8__X"], ["k__G2__D__ATHB8__X"], [],
-                          enzymes=["D__ATHB8__X"])
-        self.add_reaction(["G2"], ["G2__D__ATHB8__X"], [], ["d__G2__D__ATHB8__X"],
-                          )
+        # self.add_model_parameter("k__G2__D__ATHB8__X", category="promoter binding")
+        # self.add_model_parameter("d__G2__D__ATHB8__X", category="promoter binding")
+        # self.add_reaction(["G2"], ["G2__D__ATHB8__X"], ["k__G2__D__ATHB8__X"], [],
+        #                   enzymes=["D__ATHB8__X"])
+        # self.add_reaction(["G2"], ["G2__D__ATHB8__X"], [], ["d__G2__D__ATHB8__X"],
+        #                   )
 
-        self.add_model_parameter("k__G2__D__X__X", category="promoter binding")
-        self.add_model_parameter("d__G2__D__X__X", category="promoter binding")
-        self.add_reaction(["G2"], ["G2__D__X__X"], ["k__G2__D__X__X"], [],
-                          enzymes=["D__X__X"])
-        self.add_reaction(["G2"], ["G2__D__X__X"], [], ["d__G2__D__X__X"])
+        # self.add_model_parameter("k__G2__D__X__X", category="promoter binding")
+        # self.add_model_parameter("d__G2__D__X__X", category="promoter binding")
+        # self.add_reaction(["G2"], ["G2__D__X__X"], ["k__G2__D__X__X"], [],
+        #                   enzymes=["D__X__X"])
+        # self.add_reaction(["G2"], ["G2__D__X__X"], [], ["d__G2__D__X__X"])
 
         for mrna in ["R__ATHB8", "R__X"]:
 
